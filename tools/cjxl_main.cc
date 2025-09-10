@@ -576,13 +576,23 @@ void PrintMode(jxl::extras::PackedPixelFile& ppf, const double decode_mps,
   const char* mode = ModeFromArgs(args);
   const std::string distance = DistanceFromArgs(args);
   if (FROM_JXL_BOOL(args.lossless_jpeg)) {
-    cmdline.VerbosePrintf(1, "Read JPEG image with %" PRIuS " bytes.\n",
-                          num_bytes);
+    if (num_bytes < 100000) {
+      cmdline.VerbosePrintf(1, "Read JPEG image with %" PRIuS " bytes.\n", num_bytes);
+    } else {
+      cmdline.VerbosePrintf(1, "Read JPEG image with %.1f kB.\n", num_bytes * 0.001);
+    }
   } else if (num_bytes > 0) {
-    cmdline.VerbosePrintf(
-        1, "Read %" PRIuS "x%" PRIuS " image, %" PRIuS " bytes, %.1f MP/s\n",
-        static_cast<size_t>(ppf.info.xsize),
-        static_cast<size_t>(ppf.info.ysize), num_bytes, decode_mps);
+    if (num_bytes < 100000) {
+      cmdline.VerbosePrintf(
+          1, "Read %" PRIuS "x%" PRIuS " image, %" PRIuS " bytes, %.1f MP/s\n",
+          static_cast<size_t>(ppf.info.xsize),
+          static_cast<size_t>(ppf.info.ysize), num_bytes, decode_mps);
+    } else {
+      cmdline.VerbosePrintf(
+          1, "Read %" PRIuS "x%" PRIuS " image, %.1f kB, %.1f MP/s\n",
+          static_cast<size_t>(ppf.info.xsize),
+          static_cast<size_t>(ppf.info.ysize), num_bytes * 0.001, decode_mps);
+    }
   }
   cmdline.VerbosePrintf(
       0, "Encoding [%s%s, %s, effort: %" PRIuS,
@@ -1181,6 +1191,25 @@ int main(int argc, char** argv) {
     } else {
       cmdline.VerbosePrintf(0, "Compressed to %.1f kB ",
                             compressed_size * 0.001);
+    }
+    // Add percentage saved calculation with enhanced precision
+    if (input_bytes > 0 && compressed_size < input_bytes) {
+      double percent_saved =
+          ((double)(input_bytes - compressed_size) / input_bytes) * 100;
+      if (percent_saved >= 3.0 || percent_saved <= -3.0) {
+        cmdline.VerbosePrintf(0, "(%.1f%% saved) ", percent_saved);
+      } else {
+        cmdline.VerbosePrintf(0, "(%.2f%% saved) ", percent_saved);
+      }
+    } else if (input_bytes > 0 && compressed_size >= input_bytes) {
+      // Show that there's no savings or even a loss
+      double percent_saved =
+          ((double)(input_bytes - compressed_size) / input_bytes) * 100;
+      if (percent_saved >= 3.0 || percent_saved <= -3.0) {
+        cmdline.VerbosePrintf(0, "(%.1f%% larger) ", percent_saved);
+      } else {
+        cmdline.VerbosePrintf(0, "(%.2f%% larger) ", percent_saved);
+      }
     }
     // For lossless jpeg-reconstruction, we don't print some stats, since we
     // don't have easy access to the image dimensions.
