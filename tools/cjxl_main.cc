@@ -588,13 +588,23 @@ void PrintMode(jxl::extras::PackedPixelFile& ppf, const double decode_mps,
   const char* mode = ModeFromArgs(args);
   const std::string distance = DistanceFromArgs(args);
   if (FROM_JXL_BOOL(args.lossless_jpeg)) {
-    cmdline.VerbosePrintf(1, "Read JPEG image with %" PRIuS " bytes.\n",
-                          num_bytes);
+    if (num_bytes < 100000) {
+      cmdline.VerbosePrintf(1, "Read JPEG image with %" PRIuS " bytes.\n", num_bytes);
+    } else {
+      cmdline.VerbosePrintf(1, "Read JPEG image with %.1f kB.\n", num_bytes * 0.001);
+    }
   } else if (num_bytes > 0) {
-    cmdline.VerbosePrintf(
-        1, "Read %" PRIuS "x%" PRIuS " image, %" PRIuS " bytes, %.1f MP/s\n",
-        static_cast<size_t>(ppf.info.xsize),
-        static_cast<size_t>(ppf.info.ysize), num_bytes, decode_mps);
+    if (num_bytes < 100000) {
+      cmdline.VerbosePrintf(
+          1, "Read %" PRIuS "x%" PRIuS " image, %" PRIuS " bytes, %.1f MP/s\n",
+          static_cast<size_t>(ppf.info.xsize),
+          static_cast<size_t>(ppf.info.ysize), num_bytes, decode_mps);
+    } else {
+      cmdline.VerbosePrintf(
+          1, "Read %" PRIuS "x%" PRIuS " image, %.1f kB, %.1f MP/s\n",
+          static_cast<size_t>(ppf.info.xsize),
+          static_cast<size_t>(ppf.info.ysize), num_bytes * 0.001, decode_mps);
+    }
   }
   cmdline.VerbosePrintf(
       0, "Encoding [%s%s, %s, effort: %" PRIuS,
