@@ -1208,6 +1208,25 @@ int main(int argc, char** argv) {
       cmdline.VerbosePrintf(0, "Compressed to %.1f kB ",
                             compressed_size * 0.001);
     }
+    // Add percentage saved calculation with enhanced precision
+    if (input_bytes > 0 && compressed_size < input_bytes) {
+      double percent_saved =
+          ((double)(input_bytes - compressed_size) / input_bytes) * 100;
+      if (percent_saved >= 4.0 || percent_saved <= -4.0) {
+        cmdline.VerbosePrintf(0, "(%.2f%% saved) ", percent_saved);
+      } else {
+        cmdline.VerbosePrintf(0, "(%.3f%% saved) ", percent_saved);
+      }
+    } else if (input_bytes > 0 && compressed_size >= input_bytes) {
+      // Show that there's no savings or even a loss
+      double percent_saved =
+          ((double)(input_bytes - compressed_size) / input_bytes) * 100;
+      if (percent_saved >= 3.0 || percent_saved <= -3.0) {
+        cmdline.VerbosePrintf(0, "(%.2f%% larger) ", percent_saved);
+      } else {
+        cmdline.VerbosePrintf(0, "(%.3f%% larger) ", percent_saved);
+      }
+    }
     // For lossless jpeg-reconstruction, we don't print some stats, since we
     // don't have easy access to the image dimensions.
     if (args.container == jxl::Override::kOn) {
