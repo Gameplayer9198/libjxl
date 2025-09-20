@@ -13,7 +13,7 @@ def main():
     files = list(current_dir.glob("*.jpg")) + list(current_dir.glob("*.jpeg"))
     
     # Open log file for writing
-    with open('~Jpeg-log.txt', 'w') as log_file:
+    with open('~Jpeg-log.txt', 'w', encoding='utf-8') as log_file:
         for file_path in files:
             print(f"\nConverting: {file_path.name}")
             log_file.write(f"Converting: {file_path.name}\n")
@@ -44,7 +44,8 @@ def main():
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,  # Combine stderr and stdout
                     text=True,
-                    bufsize=1
+                    bufsize=1,
+                    encoding='utf-8'  # Explicitly set encoding for subprocess
                 )
                 
                 # Read output in real-time (both stdout and stderr)
