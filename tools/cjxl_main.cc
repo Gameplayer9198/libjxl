@@ -1254,6 +1254,30 @@ int main(int argc, char** argv) {
       cmdline.VerbosePrintf(0, "Compressed to %.1f kB ",
                             compressed_size * 0.001);
     }
+    if (input_bytes > 0) {
+      double compression_ratio = static_cast<double>(compressed_size) / input_bytes;
+      double compression_percentage = (1.0 - compression_ratio) * 100.0;
+
+      if (compression_percentage >= 0) {
+        // For small file size savings, show with higher precision
+        if (compression_percentage < 5.0) {
+          cmdline.VerbosePrintf(0, "(%.3f%% saved) ", compression_percentage);
+        } else {
+          cmdline.VerbosePrintf(0, "(%.1f%% saved) ", compression_percentage);
+        }
+      } else {
+        // For relatively massive file size increases, handle extreme cases gracefully
+        double absolute_increase = -compression_percentage;
+        if (absolute_increase > 999.9) {
+          cmdline.VerbosePrintf(0, "(%.0f%% larger) ", absolute_increase);
+          // For small file size increases, show with higher precision
+        } else if (absolute_increase < 5.0) {
+          cmdline.VerbosePrintf(0, "(%.3f%% larger) ", absolute_increase);
+        } else {
+          cmdline.VerbosePrintf(0, "(%.1f%% larger) ", absolute_increase);
+        }
+      }
+    }
     // For lossless jpeg-reconstruction, we don't print some stats, since we
     // don't have easy access to the image dimensions.
     if (args.container == jxl::Override::kOn) {
